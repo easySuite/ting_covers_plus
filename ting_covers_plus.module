@@ -119,7 +119,7 @@ function ting_covers_plus_get_image_urls(&$missing_images_local_ids, &$covers, $
       $covers[] = array(
         'local_id' => $local_id->localIdentifier,
         'image_style' => $image_styles[$local_id->localIdentifier],
-        'url' => ting_covers_plus_cover_url_histatlas($local_id),
+        'url' => ting_covers_plus_cover_url_histatlas($local_id, $image_styles[$local_id->localIdentifier]),
       );
 
       // Remove from missing images array so ADDI service won't call it later
@@ -181,7 +181,7 @@ function hook_ting_covers_plus_sources() {
  * @param object $local_id: is a 2-part identifier containing $local_id->libraryCode and $local_id->localIdentifier
  * @return string: url to image from Historisk Atlas
  */
-function ting_covers_plus_cover_url_histatlas($local_id) {
+function ting_covers_plus_cover_url_histatlas($local_id, $image_style) {
   // Call the well with agency (ex. 763000) and the 2-part identifier (owner_id:local_id, eks. 150043:3802)
   require_once drupal_get_path('module', 'ting') . '/ting.client.inc';
 
