@@ -107,7 +107,7 @@ function ting_covers_plus_get_image_urls(&$missing_images_local_ids, &$covers, $
       $covers[] = array(
         'local_id' => $local_id->localIdentifier,
         'image_style' => $image_styles[$local_id->localIdentifier],
-        'url' => ting_covers_plus_cover_url_dkbilleder($local_id),
+        'url' => ting_covers_plus_cover_url_dkbilleder($local_id, $image_styles[$local_id->localIdentifier]),
       );
 
       // Remove from missing images array so ADDI service won't call it later
@@ -212,13 +212,17 @@ function ting_covers_plus_cover_url_histatlas($local_id) {
 
   if (!empty($histatlas_url)) {
     $histatlas_url = $histatlas_url . '?width=200';
+
+    // Try to download the image locally.
+    if ($file = _ting_covers_pages_fetch_image(ting_covers_object_path($local_id->localIdentifier), $histatlas_url)) {
+      // Generate a path corresponding to the downloaded image, styled.
+      $histatlas_url = image_style_url($image_style, $file);
+    }
   }
   else {
     //TODO: get default from settings instead
     $histatlas_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/histatlas.jpg';
   }
-
-  // TODO: Try to download the image locally.
 
   return $histatlas_url;
 }
@@ -230,7 +234,7 @@ function ting_covers_plus_cover_url_histatlas($local_id) {
  * @param object $local_id: is a 2-part identifier containing $local_id->libraryCode and $local_id->localIdentifier
  * @return string: url to image from Danske Billeder
  */
-function ting_covers_plus_cover_url_dkbilleder($local_id) {
+function ting_covers_plus_cover_url_dkbilleder($local_id, $image_style) {
   // Call the well with agency (ex. 763000) and the 2-part identifier (owner_id:local_id, eks. 150043:3802)
   require_once drupal_get_path('module', 'ting') . '/ting.client.inc';
 
@@ -260,14 +264,24 @@ function ting_covers_plus_cover_url_dkbilleder($local_id) {
   $dkbilleder_url = unserialize($dkbilleder_result)->searchResponse->_value->result->_value->searchResult[0]->_value->collection->_value->object[0]->_value->relations->_value->relation[1]->_value->relationObject->_value->object->_value->object->_value->image->_value;
 
   if (!empty($dkbilleder_url)) {
-    $dkbilleder_url = $dkbilleder_url;
+
+    // For some reason, it helps to replace the URL encodings for a certain danish character with the old writing style
+    $trans = array(
+      '%C5' => 'Aa',
+      '%E5' => 'aa',
+    );
+    $dkbilleder_url = strtr( $dkbilleder_url, $trans);
+
+    // Try to download the image locally.
+    if ($file = _ting_covers_pages_fetch_image(ting_covers_object_path($local_id->localIdentifier), $dkbilleder_url)) {
+      // Generate a path corresponding to the downloaded image, styled.
+      $dkbilleder_url = image_style_url($image_style, $file);
+    }
   }
   else {
     //TODO: get default from settings instead
     $dkbilleder_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/dkbilleder.jpg';
   }
-
-  // TODO: Try to download the image locally.
 
   return $dkbilleder_url;
 }
