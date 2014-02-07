@@ -205,7 +205,7 @@ function ting_covers_plus_cover_url_histatlas($local_id) {
   // Set to PHP output instead of JSON to retrieve the relations - in JSON they are not present
   $request->setOutputType('php');
 
-  $histatlas_result = ting_execute_cache($request);
+  $histatlas_result = ting_get_client()->execute($request);
 
   // Get URL to image from Historisk Atlas
   $histatlas_url = unserialize($histatlas_result)->searchResponse->_value->result->_value->searchResult[0]->_value->collection->_value->object[0]->_value->relations->_value->relation[1]->_value->relationObject->_value->object->_value->object->_value->image->_value;
@@ -254,7 +254,7 @@ function ting_covers_plus_cover_url_dkbilleder($local_id) {
   // Set to PHP output instead of JSON to retrieve the relations - in JSON they are not present
   $request->setOutputType('php');
 
-  $dkbilleder_result = ting_execute_cache($request);
+  $dkbilleder_result = ting_get_client()->execute($request);
 
   // Get URL to image from Danske Billeder
   $dkbilleder_url = unserialize($dkbilleder_result)->searchResponse->_value->result->_value->searchResult[0]->_value->collection->_value->object[0]->_value->relations->_value->relation[1]->_value->relationObject->_value->object->_value->object->_value->image->_value;
