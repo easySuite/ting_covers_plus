@@ -1,0 +1,9 @@
+name = Ting covers plus
+description = Deafults covers and cover provider plugins for Ting objects and collections
+package = Ding!
+core = 7.x
+version = "7.x-0.1"
+files[] = ting_covers_plus.module
+dependencies[] = ting
+dependencies[] = ting_covers
+
