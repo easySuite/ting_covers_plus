@@ -67,6 +67,25 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
     ),
   );
 
+  // Add a preview of the uploaded covers that are now available for settings
+  $covers_markup = '';
+  if (isset($settings['allfiles'])) {
+    $result = db_select('file_managed', 'f')
+      ->fields('f',array('fid', 'filename', 'uri'))
+      ->condition('fid', $settings['allfiles'], 'IN')
+      ->execute();
+
+    while($record = $result->fetchAssoc()) {
+      $covers_markup = '<li><img alt="File: ' . $record['filename'] . '" title="' . $record['filename'] . '" src="' . file_create_url($record['uri']) .'"/><span>' . $record['filename'] . '</span></li>';
+    }
+  }
+
+  $form['ting_default_covers']['covers_display'] = array(
+    '#type' => 'item',
+    '#title' => t('Covers available for setting defaults'),
+    '#markup' => '<div>coversmarkup: ' . $covers_markup . '</div>',
+  );
+
   $form['ting_default_covers']['_default'] = array(
     '#type' => 'select',
     '#title' => t('Default cover'),

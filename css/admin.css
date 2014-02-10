@@ -1,0 +1,11 @@
+#edit-ting-default-covers-covers-display li {
+  display: inline-block;
+  text-align: center;
+  width: 80px;
+}
+
+
+#edit-ting-default-covers-covers-display img {
+  float: left;
+  width: 100%;
+}

@@ -9,6 +9,16 @@
  */
 
 /**
+ * Implements hook_init().
+ */
+function ting_covers_plus_init() {
+  if (arg(0) == 'admin') {
+    $path = drupal_get_path('module', 'ting_covers_plus');
+    drupal_add_css($path . '/css/admin.css');
+  }
+}
+
+/**
  * Implements hook_menu().
  */
 function ting_covers_plus_menu() {
