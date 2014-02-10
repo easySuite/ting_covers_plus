@@ -14,6 +14,20 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
   $types = variable_get('ting_well_types', array());
   $settings = variable_get('ting_default_covers', array());
 
+  // Get additional info on allfiles part of the array, for labels
+  $allfiles_data = array();
+  $allfiles_result = db_select('file_managed', 'f')
+    ->fields('f',array('fid', 'filename', 'uri'))
+    ->condition('fid', $settings['allfiles'], 'IN')
+    ->execute();
+  while($record = $allfiles_result->fetchAssoc()) {
+    $allfiles_data[] = array(
+      'fid' => $record['fid'],
+      'filename' => $record['filename'],
+      'uri' => $record['uri'],
+    );
+  }
+
   $form['ting_default_covers'] = array(
     '#type' => 'fieldset',
     '#title' => t('Default covers'),
@@ -69,28 +83,31 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
 
   // Add a preview of the uploaded covers that are now available for settings
   $covers_markup = '';
-  if (isset($settings['allfiles'])) {
-    $result = db_select('file_managed', 'f')
-      ->fields('f',array('fid', 'filename', 'uri'))
-      ->condition('fid', $settings['allfiles'], 'IN')
-      ->execute();
-
-    while($record = $result->fetchAssoc()) {
-      $covers_markup = '<li><img alt="File: ' . $record['filename'] . '" title="' . $record['filename'] . '" src="' . file_create_url($record['uri']) .'"/><span>' . $record['filename'] . '</span></li>';
+  if (isset($allfiles_data)) {
+    foreach ($allfiles_data as $record) {
+      $covers_markup .= '<li><img alt="File: ' . $record['filename'] . '" title="' . $record['filename'] . '" src="' . file_create_url($record['uri']) .'"/><span>' . $record['filename'] . '</span></li>';
     }
   }
 
   $form['ting_default_covers']['covers_display'] = array(
     '#type' => 'item',
     '#title' => t('Covers available for setting defaults'),
-    '#markup' => '<div>coversmarkup: ' . $covers_markup . '</div>',
+    '#markup' => '<div>' . $covers_markup . '</div>',
   );
+
+  // Create an options array
+  $cover_options = array('' => t('Choose'));
+  if (isset($allfiles_data)) {
+    foreach($allfiles_data as $record) {
+      $cover_options[$record['fid']] = $record['filename'];
+    }
+  }
 
   $form['ting_default_covers']['_default'] = array(
     '#type' => 'select',
     '#title' => t('Default cover'),
     '#default_value' => isset($settings['_default']) ? $settings['_default'] : '',
-    '#options' => (isset($settings['allfiles'])) ? _ting_cover_options($settings['allfiles']) : array(),
+    '#options' => (isset($settings['allfiles'])) ? $cover_options : array(),
     '#description' => t('Default cover used for types that is not specifically set below.'),
   );
 
@@ -108,7 +125,7 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
         '#type' => 'select',
         '#title' => $term,
         '#default_value' => isset($settings['types'][$term]) ? $settings['types'][$term] : '',
-        '#options' => (isset($settings['allfiles'])) ? _ting_cover_options($settings['allfiles']) : array(),
+        '#options' => (isset($settings['allfiles'])) ? $cover_options : array(),
         '#description' => t('Count: @count', array('@count' => $count)),
       );
     }
@@ -170,6 +187,10 @@ function ting_default_covers_submit($form, &$form_state) {
       $newlist['file_'.$newlist_count] = $file->fid;
       $newlist_count++;
     }
+    // Remove empty values from form_state
+    else {
+      unset($form_state['values']['ting_default_covers']['allfiles'][$key]);
+    }
   }
 
   if($newlist_count > 0) {
@@ -182,21 +203,4 @@ function ting_default_covers_submit($form, &$form_state) {
   variable_set('ting_default_covers', $settings);
 
   $form_state['redirect'] = 'admin/config/ting/covers/defaults';
-}
-
-function _ting_cover_options($allfiles) {
-  $options = array('' => t('Choose'));
-
-  if (isset($allfiles)) {
-    $result = db_select('file_managed', 'f')
-      ->fields('f',array('fid', 'filename'))
-      ->condition('fid', $allfiles, 'IN')
-      ->execute();
-
-    while($record = $result->fetchAssoc()) {
-      $options[$record['fid']] = $record['filename'];
-    }
-  }
-
-  return $options;
 }
