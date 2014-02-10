@@ -2,7 +2,7 @@
 /**
  * @file
  * Administration interface for Ting covers plus, which allows configuration of
- * XXX
+ * default covers for ting objects
  */
 
 /**
@@ -91,9 +91,6 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
         '#default_value' => isset($settings['types'][$term]) ? $settings['types'][$term] : '',
         '#options' => (isset($settings['allfiles'])) ? _ting_cover_options($settings['allfiles']) : array(),
         '#description' => t('Count: @count', array('@count' => $count)),
-        // Fudge the parent so we'll get all the labels in one big array in
-        // ting_default_covers.
-        '#parents' => array('ting_default_covers', $term),
       );
     }
   }
@@ -168,9 +165,6 @@ function ting_default_covers_submit($form, &$form_state) {
   $form_state['redirect'] = 'admin/config/ting/covers/defaults';
 }
 
-/**
- * Helper function to return cover image options
- */
 function _ting_cover_options($allfiles) {
   $options = array('' => t('Choose'));
 
