@@ -69,9 +69,16 @@ function ting_covers_plus_objects() {
       }
 
       // No cover image found? Pick from standard set of images
-      // TODO: make as module and depend this code on it
       if (!$source_url) {
-        $source_url = _ting_covers_plus_get_default_image($local_id->materialType);
+        if ($source_url = _ting_covers_plus_get_default_image($local_id->materialType)) {
+          // Generate a path corresponding to the default image, styled.
+          $covers[] = array(
+            'local_id' => $local_id->localIdentifier,
+            'image_style' => $image_styles[$cover_info['local_id']],
+            'url' => image_style_url($image_styles[$cover_info['local_id']], $source_url),
+          );
+          continue;
+        }
       }
 
       // NB: The following should now NEVER run, as we always have a source_url defined..
@@ -103,63 +110,25 @@ function ting_covers_plus_objects() {
 
 
 /**
- * Helper function returning default image for given material types
+ * Helper function returning default image URI for a given material type
  *
  * @param string $mtype
  *    The material type label to get standard image for.
  * @return string
- *    An URL a standard image.
+ *    An URI to an image file.
  */
 function _ting_covers_plus_get_default_image($mtype) {
-  switch ($mtype) {
-    case 'Enkelte-Billeder':
-    case 'Arkivfond':
-      $source_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/dlb_vejle.png';
-      break;
-    case 'Bog':
-      $source_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/bog.png';
-      break;
-    case 'Cd-musik':
-    case 'Lydbog-cd':
-    case 'Lydbog-cd-mp3':
-      $source_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/cd.png';
-      break;
-    case 'Node':
-      $source_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/nodepapir.png';
-      break;
-    case 'Avis':
-    case 'Avisartikel':
-      $source_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/avis.png';
-      break;
-    case 'Tidsskrift':
-    case 'Tidsskriftsartikel':
-    case 'Artikel':
-    case 'Periodikum':
-      $source_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/magasin.png';
-      break;
-    case 'Musik-net':
-    case 'Netdokument':
-    case 'Lydbog-net':
-      $source_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/globe.png';
-      break;
-    case 'Cd-rom':
-    case 'Wii':
-    case 'Playstation':
-    case 'Playstation-2':
-    case 'Playstation-3':
-    case 'Xbox':
-    case 'Xbox-360':
-    case 'Dvd':
-    case 'Blu-ray':
-      $source_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/dvd.png';
-      break;
-    case 'Spil':
-    case 'Billedbog':
-    case 'Tegneserie':
-    case 'Video':
-    case 'Lydbog-baand':
-    default:
-      $source_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/standard.png';
+
+  $mtype_uris = variable_get('ting_default_covers_mtype_uris');
+
+  if (isset($mtype_uris[strtolower($mtype)])) {
+    $source_url = $mtype_uris[strtolower($mtype)];
+  }
+  elseif (isset($mtype_urls['_default'])) {
+    $source_url = $mtype_uris['_default'];
+  }
+  else {
+    $source_url = NULL;
   }
 
   return $source_url;
