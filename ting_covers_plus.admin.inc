@@ -14,7 +14,7 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
   $types = variable_get('ting_well_types', array());
   $settings = variable_get('ting_default_covers', array());
 
-  // Get additional info on allfiles part of the array, for labels
+  // Get additional info on allfiles part of the array, for labels and URLs
   $allfiles_data = array();
   $allfiles_result = db_select('file_managed', 'f')
     ->fields('f',array('fid', 'filename', 'uri'))
@@ -201,6 +201,24 @@ function ting_default_covers_submit($form, &$form_state) {
   }
 
   variable_set('ting_default_covers', $settings);
+
+  // create a copy of types array with the keys transformed to a css-friendly string
+  // Get additional info on allfiles part of the array, for labels and URLs
+  $fid_uri_map = array();
+  $map_result = db_select('file_managed', 'f')
+    ->fields('f',array('fid', 'uri'))
+    ->condition('fid', $settings['allfiles'], 'IN')
+    ->execute();
+  while($row = $map_result->fetchAssoc()) {
+    $fid_uri_map[$row['fid']] = $row['uri'];
+  }
+  $mtype_uris = array('_default' => $fid_uri_map[$form_state['values']['ting_default_covers']['_default']] );
+  if ($form_state['values']['ting_default_covers']['types']) {
+    foreach($form_state['values']['ting_default_covers']['types'] as $key => $value) {
+      $mtype_uris[drupal_clean_css_identifier($key)] = (isset($fid_uri_map[$value]) ? $fid_uri_map[$value] : NULL);
+    }
+  }
+  variable_set('ting_default_covers_mtype_uris', $mtype_uris);
 
   $form_state['redirect'] = 'admin/config/ting/covers/defaults';
 }
