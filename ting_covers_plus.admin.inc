@@ -16,16 +16,18 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
 
   // Get additional info on allfiles part of the array, for labels and URLs
   $allfiles_data = array();
-  $allfiles_result = db_select('file_managed', 'f')
-    ->fields('f',array('fid', 'filename', 'uri'))
-    ->condition('fid', $settings['allfiles'], 'IN')
-    ->execute();
-  while($record = $allfiles_result->fetchAssoc()) {
-    $allfiles_data[] = array(
-      'fid' => $record['fid'],
-      'filename' => $record['filename'],
-      'uri' => $record['uri'],
-    );
+  if (count($settings['allfiles']) > 0) {
+    $allfiles_result = db_select('file_managed', 'f')
+      ->fields('f',array('fid', 'filename', 'uri'))
+      ->condition('fid', $settings['allfiles'], 'IN')
+      ->execute();
+    while($record = $allfiles_result->fetchAssoc()) {
+      $allfiles_data[] = array(
+        'fid' => $record['fid'],
+        'filename' => $record['filename'],
+        'uri' => $record['uri'],
+      );
+    }
   }
 
   $form['ting_default_covers'] = array(
