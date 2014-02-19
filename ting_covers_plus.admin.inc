@@ -53,7 +53,7 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
   $form['ting_default_covers'] = array(
     '#type' => 'fieldset',
     '#title' => t('Default covers'),
-    '#description' => t('Settings for the default cover and default cover per well type'),
+    '#description' => t('Settings for the default covers. A default cover will be set, first according to well SOURCE of the record, thereafter according to well MATERIAL TYPE for the record, and if none applies, the default cover (fallback) will be used.'),
     '#tree' => TRUE,
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
@@ -125,14 +125,28 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
     }
   }
 
-  $form['ting_default_covers']['_default'] = array(
-    '#type' => 'select',
-    '#title' => t('Default cover'),
-    '#default_value' => isset($settings['_default']) ? $settings['_default'] : '',
-    '#options' => (isset($settings['allfiles'])) ? $cover_options : array(),
-    '#description' => t('Default cover used for types that is not specifically set below.'),
-  );
+  // Settings for sources
+  if (count($sources)) {
+    $form['ting_default_covers']['sources'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Source specific default covers'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#description' => t("Here you may set default covers for sources. If a SOURCE default cover is not set, a default cover will then be chosen according to MATERIAL TYPE specific covers below."),
+    );
 
+    foreach ($sources as $source => $scount) {
+      $form['ting_default_covers']['sources'][$source] = array(
+        '#type' => 'select',
+        '#title' => $source,
+        '#default_value' => isset($settings['sources'][$source]) ? $settings['sources'][$source] : '',
+        '#options' => (isset($settings['allfiles'])) ? $cover_options : array(),
+        '#description' => t('Count: @count', array('@count' => $scount)),
+      );
+    }
+  }
+
+  // Setting for types
   if (count($types)) {
     $form['ting_default_covers']['types'] = array(
       '#type' => 'fieldset',
@@ -153,36 +167,13 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
     }
   }
 
-  $form['ting_default_covers']['sources'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Source specific default covers'),
-      '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
-      '#description' => t("Here you may set default covers for sources that try to pull in covers."),
-  );
-
-  $form['ting_default_covers']['sources']['histatlas'] = array(
+  // Setting for default fallback cover
+  $form['ting_default_covers']['_default'] = array(
     '#type' => 'select',
-    '#title' => t('Historisk Atlas'),
-    '#default_value' => isset($settings['sources']['histatlas']) ? $settings['sources']['histatlas'] : '',
+    '#title' => t('Default cover - fallback'),
+    '#default_value' => isset($settings['_default']) ? $settings['_default'] : '',
     '#options' => (isset($settings['allfiles'])) ? $cover_options : array(),
-    '#description' => t('Default cover when Historisk Atlas cover cannot be retrieved.'),
-  );
-
-  $form['ting_default_covers']['sources']['dkbilleder'] = array(
-    '#type' => 'select',
-    '#title' => t('Danske Billeder'),
-    '#default_value' => isset($settings['sources']['dkbilleder']) ? $settings['sources']['dkbilleder'] : '',
-    '#options' => (isset($settings['allfiles'])) ? $cover_options : array(),
-    '#description' => t('Default cover when Danske Billeder cover cannot be retrieved.'),
-  );
-
-  $form['ting_default_covers']['sources']['dlb_vejle'] = array(
-    '#type' => 'select',
-    '#title' => t('Vejle stadsarkiv'),
-    '#default_value' => isset($settings['sources']['dlb_vejle']) ? $settings['sources']['dlb_vejle'] : '',
-    '#options' => (isset($settings['allfiles'])) ? $cover_options : array(),
-    '#description' => t('Default cover when Vejle stadsarkiv cover cannot be retrieved.'),
+    '#description' => t('Default cover used for any of the above - if setting has not been set. This is the final fallback cover to ensure everything has covers.'),
   );
 
   $form['#submit'] = array('ting_default_covers_submit');
@@ -256,7 +247,6 @@ function ting_default_covers_submit($form, &$form_state) {
 
   variable_set('ting_default_covers', $settings);
 
-  // create a copy of types array with the keys transformed to a css-friendly string
   // Get additional info on allfiles part of the array, for labels and URLs
   $fid_uri_map = array();
   $map_result = db_select('file_managed', 'f')
@@ -266,6 +256,8 @@ function ting_default_covers_submit($form, &$form_state) {
   while($row = $map_result->fetchAssoc()) {
     $fid_uri_map[$row['fid']] = $row['uri'];
   }
+
+  // create a copy of types array with the keys transformed to a css-friendly string
   $mtype_uris = array('_default' => $fid_uri_map[$form_state['values']['ting_default_covers']['_default']] );
   if ($form_state['values']['ting_default_covers']['types']) {
     foreach($form_state['values']['ting_default_covers']['types'] as $key => $value) {
@@ -273,6 +265,16 @@ function ting_default_covers_submit($form, &$form_state) {
     }
   }
   variable_set('ting_default_covers_mtype_uris', $mtype_uris);
+
+  // create a copy of sources array with the keys transformed to a css-friendly string
+  reset($fid_uri_map);
+  $source_uris = array('_default' => $fid_uri_map[$form_state['values']['ting_default_covers']['_default']] );
+  if ($form_state['values']['ting_default_covers']['sources']) {
+    foreach($form_state['values']['ting_default_covers']['sources'] as $key => $value) {
+      $source_uris[drupal_clean_css_identifier($key)] = (isset($fid_uri_map[$value]) ? $fid_uri_map[$value] : NULL);
+    }
+  }
+  variable_set('ting_default_covers_source_uris', $source_uris);
 
   $form_state['redirect'] = 'admin/config/ting/covers/defaults';
 }
