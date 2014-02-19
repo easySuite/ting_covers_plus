@@ -190,6 +190,8 @@ function hook_ting_covers_plus_sources() {
  * @return string: url to image from Historisk Atlas
  */
 function ting_covers_plus_cover_url_histatlas($local_id, $image_style) {
+  $histatlas_url = '';
+
   // Call the well with agency (ex. 763000) and the 2-part identifier (owner_id:local_id, eks. 150043:3802)
   require_once drupal_get_path('module', 'ting') . '/ting.client.inc';
 
@@ -227,10 +229,6 @@ function ting_covers_plus_cover_url_histatlas($local_id, $image_style) {
       $histatlas_url = image_style_url($image_style, $file);
     }
   }
-  else {
-    //TODO: get default from settings instead
-    $histatlas_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/histatlas.jpg';
-  }
 
   return $histatlas_url;
 }
@@ -243,6 +241,8 @@ function ting_covers_plus_cover_url_histatlas($local_id, $image_style) {
  * @return string: url to image from Danske Billeder
  */
 function ting_covers_plus_cover_url_dkbilleder($local_id, $image_style) {
+  $dkbilleder_url = '';
+
   // Call the well with agency (ex. 763000) and the 2-part identifier (owner_id:local_id, eks. 150043:3802)
   require_once drupal_get_path('module', 'ting') . '/ting.client.inc';
 
@@ -286,10 +286,6 @@ function ting_covers_plus_cover_url_dkbilleder($local_id, $image_style) {
       $dkbilleder_url = image_style_url($image_style, $file);
     }
   }
-  else {
-    //TODO: get default from settings instead
-    $dkbilleder_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/dkbilleder.jpg';
-  }
 
   return $dkbilleder_url;
 }
@@ -302,6 +298,8 @@ function ting_covers_plus_cover_url_dkbilleder($local_id, $image_style) {
  * @return string: url to image from DLB Vejle
  */
 function ting_covers_plus_cover_url_dlb_vejle($local_id, $image_style) {
+  $dlb_vejle_url = '';
+
   /*
   // Call the well with agency (ex. 763000) and the 2-part identifier (owner_id:local_id, eks. 150043:3802)
   require_once drupal_get_path('module', 'ting') . '/ting.client.inc';
@@ -333,7 +331,6 @@ function ting_covers_plus_cover_url_dlb_vejle($local_id, $image_style) {
   */
 
   if (!empty($dlb_vejle_url)) {
-    $dlb_vejle_url = $dlb_vejle_url;
 
     // Try to download the image locally.
     if ($file = _ting_covers_pages_fetch_image(ting_covers_object_path($local_id->localIdentifier), $dlb_vejle_url)) {
@@ -341,12 +338,6 @@ function ting_covers_plus_cover_url_dlb_vejle($local_id, $image_style) {
       $dlb_vejle_url = image_style_url($image_style, $file);
     }
   }
-  else {
-    //TODO: get default from settings instead
-    $dlb_vejle_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/dlb_vejle.png';
-  }
-
-  // TODO: Try to download the image locally.
 
   return $dlb_vejle_url;
 }
