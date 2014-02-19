@@ -12,6 +12,7 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
   $form = array();
 
   $types = variable_get('ting_well_types', array());
+  $sources = variable_get('ting_well_sources', array());
   $settings = variable_get('ting_default_covers', array());
 
   // Get additional info on allfiles part of the array, for labels and URLs
@@ -29,6 +30,25 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
       );
     }
   }
+
+  // Add buttons to update well types and sources
+  $form['update'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Update from datawell'),
+    '#description' => t('If needed, well types and well sources can be updated/refreshed here. This helps when evident that the settings below lacks settings for some types and/or sources.'),
+  );
+
+  $form['update']['types'] = array(
+    '#type' => 'submit',
+    '#value' => t('Update well types'),
+    '#submit' => array('_ting_covers_plus_update_types'),
+  );
+
+  $form['update']['sources'] = array(
+    '#type' => 'submit',
+    '#value' => t('Update well sources'),
+    '#submit' => array('_ting_covers_plus_update_sources'),
+  );
 
   $form['ting_default_covers'] = array(
     '#type' => 'fieldset',
@@ -133,6 +153,38 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
     }
   }
 
+  $form['ting_default_covers']['sources'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Source specific default covers'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#description' => t("Here you may set default covers for sources that try to pull in covers."),
+  );
+
+  $form['ting_default_covers']['sources']['histatlas'] = array(
+    '#type' => 'select',
+    '#title' => t('Historisk Atlas'),
+    '#default_value' => isset($settings['sources']['histatlas']) ? $settings['sources']['histatlas'] : '',
+    '#options' => (isset($settings['allfiles'])) ? $cover_options : array(),
+    '#description' => t('Default cover when Historisk Atlas cover cannot be retrieved.'),
+  );
+
+  $form['ting_default_covers']['sources']['dkbilleder'] = array(
+    '#type' => 'select',
+    '#title' => t('Danske Billeder'),
+    '#default_value' => isset($settings['sources']['dkbilleder']) ? $settings['sources']['dkbilleder'] : '',
+    '#options' => (isset($settings['allfiles'])) ? $cover_options : array(),
+    '#description' => t('Default cover when Danske Billeder cover cannot be retrieved.'),
+  );
+
+  $form['ting_default_covers']['sources']['dlb_vejle'] = array(
+    '#type' => 'select',
+    '#title' => t('Vejle stadsarkiv'),
+    '#default_value' => isset($settings['sources']['dlb_vejle']) ? $settings['sources']['dlb_vejle'] : '',
+    '#options' => (isset($settings['allfiles'])) ? $cover_options : array(),
+    '#description' => t('Default cover when Vejle stadsarkiv cover cannot be retrieved.'),
+  );
+
   $form['#submit'] = array('ting_default_covers_submit');
 
   return system_settings_form($form);
@@ -223,4 +275,18 @@ function ting_default_covers_submit($form, &$form_state) {
   variable_set('ting_default_covers_mtype_uris', $mtype_uris);
 
   $form_state['redirect'] = 'admin/config/ting/covers/defaults';
+}
+
+/**
+ * Submit handler. Updates the list of known well types.
+ */
+function _ting_covers_plus_update_types($form, &$form_state) {
+  _ting_fetch_well_types();
+}
+
+/**
+ * Submit handler. Updates the list of known well sources.
+ */
+function _ting_covers_plus_update_sources($form, &$form_state) {
+  _ting_fetch_well_sources();
 }
