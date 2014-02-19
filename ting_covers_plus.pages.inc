@@ -70,7 +70,7 @@ function ting_covers_plus_objects() {
 
       // No cover image found? Pick from standard set of images
       if (!$source_url) {
-        if ($source_url = _ting_covers_plus_get_default_image($local_id->materialType)) {
+        if ($source_url = _ting_covers_plus_get_default_image($local_id->materialType, $local_id->sourceName)) {
           // Generate a path corresponding to the default image, styled.
           $covers[] = array(
             'local_id' => $local_id->localIdentifier,
@@ -117,18 +117,23 @@ function ting_covers_plus_objects() {
  * @return string
  *    An URI to an image file.
  */
-function _ting_covers_plus_get_default_image($mtype) {
-
+function _ting_covers_plus_get_default_image($mtype, $source) {
+  $source_url = NULL;
   $mtype_uris = variable_get('ting_default_covers_mtype_uris');
+  $source_uris = variable_get('ting_default_covers_source_uris');
 
-  if (isset($mtype_uris[strtolower($mtype)])) {
-    $source_url = $mtype_uris[strtolower($mtype)];
+  // Check first if we have default cover defined for SOURCE NAME
+
+  if (isset($source_uris[strtolower($source)])) {
+    $source_url = $source_uris[strtolower($source)];
   }
-  elseif (isset($mtype_urls['_default'])) {
+  // Then check if we have default cover defined for MATERIAL TYPE
+  elseif (isset($mtype_uris[strtolower($mtype)])) {
     $source_url = $mtype_uris['_default'];
   }
-  else {
-    $source_url = NULL;
+  // Last, use the default fallback cover if it has been defined
+  elseif (isset($mtype_urls['_default'])) {
+    $source_url = $mtype_uris['_default'];
   }
 
   return $source_url;
