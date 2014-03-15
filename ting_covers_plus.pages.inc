@@ -129,7 +129,7 @@ function _ting_covers_plus_get_default_image($mtype, $source) {
   }
   // Then check if we have default cover defined for MATERIAL TYPE
   elseif (isset($mtype_uris[strtolower($mtype)])) {
-    $source_url = $mtype_uris['_default'];
+    $source_url = $mtype_uris[strtolower($mtype)];
   }
   // Last, use the default fallback cover if it has been defined
   elseif (isset($mtype_urls['_default'])) {
