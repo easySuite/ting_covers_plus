@@ -105,31 +105,39 @@ function ting_covers_plus_field_formatter_view($entity_type, $entity, $field, $i
  * @param array $image_styles;
  */
 function ting_covers_plus_get_image_urls(&$missing_images_local_ids, &$covers, $image_styles) {
+  $url = '';
+
   // Calls to external image sources for specific sources
   foreach ($missing_images_local_ids as $local_id_key => $local_id) {
 
     // Danske Billeder source
     if ($local_id->sourceName == 'Danske-Billeder') {
-      $covers[] = array(
-        'local_id' => $local_id->localIdentifier,
-        'image_style' => $image_styles[$local_id->localIdentifier],
-        'url' => ting_covers_plus_cover_url_dkbilleder($local_id, $image_styles[$local_id->localIdentifier]),
-      );
+      $url = ting_covers_plus_cover_url_dkbilleder($local_id, $image_styles[$local_id->localIdentifier]);
+      if (!empty($url)) {
+        $covers[] = array(
+          'local_id' => $local_id->localIdentifier,
+          'image_style' => $image_styles[$local_id->localIdentifier],
+          'url' => ting_covers_plus_cover_url_dkbilleder($local_id, $image_styles[$local_id->localIdentifier]),
+        );
 
-      // Remove from missing images array so ADDI service won't call it later
-      unset($missing_images_local_ids[$local_id_key]);
+        // Remove from missing images array so ADDI service won't call it later
+        unset($missing_images_local_ids[$local_id_key]);
+      }
     }
 
     // Historisk Atlas source
     if ($local_id->sourceName == 'Historisk-Atlas') {
-      $covers[] = array(
-        'local_id' => $local_id->localIdentifier,
-        'image_style' => $image_styles[$local_id->localIdentifier],
-        'url' => ting_covers_plus_cover_url_histatlas($local_id, $image_styles[$local_id->localIdentifier]),
-      );
+      $url = ting_covers_plus_cover_url_histatlas($local_id, $image_styles[$local_id->localIdentifier]);
+      if(!empty($url)) {
+        $covers[] = array(
+          'local_id' => $local_id->localIdentifier,
+          'image_style' => $image_styles[$local_id->localIdentifier],
+          'url' => ting_covers_plus_cover_url_histatlas($local_id, $image_styles[$local_id->localIdentifier]),
+        );
 
-      // Remove from missing images array so ADDI service won't call it later
-      unset($missing_images_local_ids[$local_id_key]);
+        // Remove from missing images array so ADDI service won't call it later
+        unset($missing_images_local_ids[$local_id_key]);
+      }
     }
 
   }
