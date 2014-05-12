@@ -50,8 +50,8 @@ function ting_covers_plus_menu() {
  */
 function ting_covers_plus_preprocess_ting_object_cover(&$variables) {
   $object = $variables['object'] = $variables['elements']['#object'];
-  $ac_source = !empty($object->reply->record['ac:source'][''][0]) ? $object->reply->record['ac:source'][''][0] : 'ukendt'; //array_shift($object->reply->record['ac:source']);
-  $dc_type = !empty($object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0]) ? $object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0] : (!empty($object->reply->record['dc:type'][''][0]) ? $object->reply->record['dc:type'][''][0] : 'ukendt');
+  $ac_source = !empty($object->reply->record['ac:source'][''][0]) ? $object->reply->record['ac:source'][''][0] : 'unknown'; //array_shift($object->reply->record['ac:source']);
+  $dc_type = !empty($object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0]) ? $object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0] : (!empty($object->reply->record['dc:type'][''][0]) ? $object->reply->record['dc:type'][''][0] : 'unknown');
   
   // Set extra values required by the template.
   $variables['classes'][] = 'ting-cover-mtype-' . drupal_clean_css_identifier($dc_type);
