@@ -52,7 +52,7 @@ function ting_covers_plus_preprocess_ting_object_cover(&$variables) {
   $object = $variables['object'] = $variables['elements']['#object'];
   $ac_source = !empty($object->reply->record['ac:source'][''][0]) ? $object->reply->record['ac:source'][''][0] : 'ukendt'; //array_shift($object->reply->record['ac:source']);
   $dc_type = !empty($object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0]) ? $object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0] : (!empty($object->reply->record['dc:type'][''][0]) ? $object->reply->record['dc:type'][''][0] : 'ukendt');
-
+  
   // Set extra values required by the template.
   $variables['classes'][] = 'ting-cover-mtype-' . drupal_clean_css_identifier($dc_type);
   $variables['classes'][] = 'ting-cover-source-' . drupal_clean_css_identifier($ac_source);
@@ -105,39 +105,31 @@ function ting_covers_plus_field_formatter_view($entity_type, $entity, $field, $i
  * @param array $image_styles;
  */
 function ting_covers_plus_get_image_urls(&$missing_images_local_ids, &$covers, $image_styles) {
-  $url = '';
-
   // Calls to external image sources for specific sources
   foreach ($missing_images_local_ids as $local_id_key => $local_id) {
 
     // Danske Billeder source
     if ($local_id->sourceName == 'Danske-Billeder') {
-      $url = ting_covers_plus_cover_url_dkbilleder($local_id, $image_styles[$local_id->localIdentifier]);
-      if (!empty($url)) {
-        $covers[] = array(
-          'local_id' => $local_id->localIdentifier,
-          'image_style' => $image_styles[$local_id->localIdentifier],
-          'url' => ting_covers_plus_cover_url_dkbilleder($local_id, $image_styles[$local_id->localIdentifier]),
-        );
+      $covers[] = array(
+        'local_id' => $local_id->localIdentifier,
+        'image_style' => $image_styles[$local_id->localIdentifier],
+        'url' => ting_covers_plus_cover_url_dkbilleder($local_id, $image_styles[$local_id->localIdentifier]),
+      );
 
-        // Remove from missing images array so ADDI service won't call it later
-        unset($missing_images_local_ids[$local_id_key]);
-      }
+      // Remove from missing images array so ADDI service won't call it later
+      unset($missing_images_local_ids[$local_id_key]);
     }
 
     // Historisk Atlas source
     if ($local_id->sourceName == 'Historisk-Atlas') {
-      $url = ting_covers_plus_cover_url_histatlas($local_id, $image_styles[$local_id->localIdentifier]);
-      if(!empty($url)) {
-        $covers[] = array(
-          'local_id' => $local_id->localIdentifier,
-          'image_style' => $image_styles[$local_id->localIdentifier],
-          'url' => ting_covers_plus_cover_url_histatlas($local_id, $image_styles[$local_id->localIdentifier]),
-        );
+      $covers[] = array(
+        'local_id' => $local_id->localIdentifier,
+        'image_style' => $image_styles[$local_id->localIdentifier],
+        'url' => ting_covers_plus_cover_url_histatlas($local_id, $image_styles[$local_id->localIdentifier]),
+      );
 
-        // Remove from missing images array so ADDI service won't call it later
-        unset($missing_images_local_ids[$local_id_key]);
-      }
+      // Remove from missing images array so ADDI service won't call it later
+      unset($missing_images_local_ids[$local_id_key]);
     }
 
   }
@@ -146,42 +138,6 @@ function ting_covers_plus_get_image_urls(&$missing_images_local_ids, &$covers, $
   reset($missing_images_local_ids);
 }
 
-/**
- * Helper function returning current (alternative) search profile id
- *
- * This function supports ding-sites that employ multiple search
- * modules/interfaces (see f.ex. https://github.com/vejlebib/ting_extrasearch).
- * It looks for "/search/ting" in the HTTP_REFERER string as it
- * it assumes that any other ting search modules will also be implemented
- * starting with "ting" (such as the URL-path "/search/tingextra/").
- * It then extracts the needed string from HTTP_REFERER, and (again) makes
- * an assumption that a variable named according to the pattern 
- * "ting_{EXTRACTEDSTRING}search_profile" will exist.
- * 
- * @return string
- *    ID of a well search profile, or NULL if the current search
- *    profile is the default.
- */
-function _ting_covers_plus_alt_search_profile_ID() {
-  $profile_val = NULL;
-
-  $referer = $GLOBALS[_SERVER][HTTP_REFERER];
-
-  if (strpos($referer, '/search/ting') !== false) {
-    $referer_parts = explode('/', $referer);
-    array_pop($referer_parts); // Removes last part of the array
-
-    if(end($referer_parts)) {
-      $ting_search_part = str_replace('ting', '', end($referer_parts));
-
-      if ($ting_search_part != '') {
-        $profile_val = "ting_" . $ting_search_part . "search_profile";
-      }
-    }
-  }
-
-  return $profile_val;
-}
 
 /**
  * Function to get cover URL from provider Historisk Atlas
@@ -201,13 +157,7 @@ function ting_covers_plus_cover_url_histatlas($local_id, $image_style) {
     $request->setAgency($agency);
   }
 
-  $alt_search_profile_ID = _ting_covers_plus_alt_search_profile_ID();
-  if($alt_search_profile_ID) {
-    $profile = variable_get($alt_search_profile_ID, '');
-  }
-  else {
-    $profile = variable_get('ting_search_profile', '');
-  }
+  $profile = variable_get('ting_search_profile', '');
   if (!empty($profile) && method_exists($request, 'setProfile')) {
     $request->setProfile($profile);
   }
@@ -258,13 +208,7 @@ function ting_covers_plus_cover_url_dkbilleder($local_id, $image_style) {
     $request->setAgency($agency);
   }
 
-  $alt_search_profile_ID = _ting_covers_plus_alt_search_profile_ID();
-  if($alt_search_profile_ID) {
-    $profile = variable_get($alt_search_profile_ID, '');
-  }
-  else {
-    $profile = variable_get('ting_search_profile', '');
-  }
+  $profile = variable_get('ting_search_profile', '');
   if (!empty($profile) && method_exists($request, 'setProfile')) {
     $request->setProfile($profile);
   }
