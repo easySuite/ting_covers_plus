@@ -25,6 +25,15 @@
     $.each(covers, function(index, cover_info) {
       $('.ting-cover-processing' + '.ting-cover-object-id-' + cover_info.local_id + '.ting-cover-style-' + cover_info.image_style).html('<img src="' + cover_info.url + '"/>');
     });
+
+    // Remove no image picture from covers.
+    if (Drupal.settings.ting_covers_plus.ting_covers_plus_hide_covers == 1) {
+      $('.ting-cover').each(function(index, element) {
+        if ($(element).find('img').length == 0) {
+          this.remove();
+        }
+      })
+    }
   };
 
   Drupal.behaviors.tingCovers = {

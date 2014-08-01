@@ -16,6 +16,12 @@ function ting_covers_plus_init() {
     $path = drupal_get_path('module', 'ting_covers_plus');
     drupal_add_css($path . '/css/admin.css');
   }
+  if (arg(0) == 'search' && arg(1) == 'ting') {
+    $hide_covers = array(
+      'ting_covers_plus' => variable_get('ting_default_covers_remove', FALSE),
+    );
+    drupal_add_js($hide_covers, 'setting');
+  }
 }
 
 /**
