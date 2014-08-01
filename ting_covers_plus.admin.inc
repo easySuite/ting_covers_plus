@@ -31,6 +31,21 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
     }
   }
 
+  $form['ting_default_covers_remove'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Hide empty covers'),
+    '#description' => t('Remove empty covers or insert noimage.'),
+    '#tree' => TRUE,
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+
+  $form['ting_default_covers_remove']['ting_covers_plus_hide_covers'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Hide empty covers'),
+    '#default_value' => variable_get('ting_covers_plus_hide_covers', FALSE),
+  );
+
   // Add buttons to update well types and sources
   $form['update'] = array(
     '#type' => 'fieldset',
@@ -185,6 +200,8 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
  * Ting covers plus admin form submission handler
  */
 function ting_default_covers_submit($form, &$form_state) {
+  $hide_covers = $form_state['values']['ting_default_covers_remove'];
+  variable_set('ting_covers_plus_hide_covers', $hide_covers['ting_covers_plus_hide_covers']);
 
   $settings = variable_get('ting_default_covers', array());
 
