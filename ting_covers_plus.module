@@ -54,8 +54,9 @@ function ting_covers_plus_preprocess_ting_object_cover(&$variables) {
   $dc_type = !empty($object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0]) ? $object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0] : (!empty($object->reply->record['dc:type'][''][0]) ? $object->reply->record['dc:type'][''][0] : 'unknown');
   
   // Set extra values required by the template.
-  $variables['classes'][] = 'ting-cover-mtype-' . drupal_clean_css_identifier($dc_type);
-  $variables['classes'][] = 'ting-cover-source-' . drupal_clean_css_identifier($ac_source);
+  // We change the strings to lowercase to make them match the values in the variable arrays ting_well_types and ting_well_sources.
+  $variables['classes'][] = 'ting-cover-mtype-' . mb_strtolower(drupal_clean_css_identifier($dc_type), 'utf-8');
+  $variables['classes'][] = 'ting-cover-source-' . mb_strtolower(drupal_clean_css_identifier($ac_source), 'utf-8');
 }
 
 /**
