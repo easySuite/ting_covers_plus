@@ -265,13 +265,15 @@ function ting_default_covers_submit($form, &$form_state) {
   variable_set('ting_default_covers', $settings);
 
   // Get additional info on allfiles part of the array, for labels and URLs
-  $fid_uri_map = array();
-  $map_result = db_select('file_managed', 'f')
-    ->fields('f',array('fid', 'uri'))
-    ->condition('fid', $settings['allfiles'], 'IN')
-    ->execute();
-  while($row = $map_result->fetchAssoc()) {
-    $fid_uri_map[$row['fid']] = $row['uri'];
+  if ($settings['allfiles']) {
+    $fid_uri_map = array();
+    $map_result = db_select('file_managed', 'f')
+      ->fields('f',array('fid', 'uri'))
+      ->condition('fid', $settings['allfiles'], 'IN')
+      ->execute();
+    while($row = $map_result->fetchAssoc()) {
+      $fid_uri_map[$row['fid']] = $row['uri'];
+    }
   }
 
   // create a copy of types array with the keys transformed to a css-friendly string
