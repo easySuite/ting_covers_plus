@@ -23,8 +23,21 @@
 
   var ting_cover_insert = function(covers) {
     $.each(covers, function(index, cover_info) {
-      $('.ting-cover-processing' + '.ting-cover-object-id-' + cover_info.local_id + '.ting-cover-style-' + cover_info.image_style).html('<img src="' + cover_info.url + '"/>');
+      var $cover_block = $('.ting-cover-processing' + '.ting-cover-object-id-' + cover_info.local_id + '.ting-cover-style-' + cover_info.image_style);
+      $cover_block.html('<img src="' + cover_info.url + '"/>');
+      if (cover_info.class.length > 0) {
+        $cover_block.addClass(cover_info.class);
+      }
     });
+
+    // Remove no image picture from covers.
+    if (Drupal.settings.ting_covers_plus.ting_covers_plus_hide_covers === 1) {
+      $('.ting-cover').each(function(index, element) {
+        if ($(element).find('img').length === 0 || $(element).hasClass('ting-covers-plus-default')) {
+          this.remove();
+        }
+      })
+    }
   };
 
   Drupal.behaviors.tingCovers = {
@@ -36,6 +49,15 @@
       $('.ting-cover:not(.ting-cover-processing, .ting-cover-processed)', context).each(function(index, element) {
         cover_data.push(ting_covers_extract_data(element));
       }).addClass('ting-cover-processing');
+
+      // Get all images without covers, even if cache exist.
+      if (cover_data.length === 0) {
+        $('.ting-cover').each(function(index, element) {
+          if ($(element).find('img').length === 0) {
+            cover_data.push(ting_covers_extract_data(element));
+          }
+        }).addClass('ting-cover-processing');
+      }
 
       if (cover_data.length > 0) {
         //Retrieve covers

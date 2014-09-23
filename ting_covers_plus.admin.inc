@@ -12,26 +12,63 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
   $form = array();
 
   $types = variable_get('ting_well_types', array());
+  $sources = variable_get('ting_well_sources', array());
   $settings = variable_get('ting_default_covers', array());
 
   // Get additional info on allfiles part of the array, for labels and URLs
   $allfiles_data = array();
-  $allfiles_result = db_select('file_managed', 'f')
-    ->fields('f',array('fid', 'filename', 'uri'))
-    ->condition('fid', $settings['allfiles'], 'IN')
-    ->execute();
-  while($record = $allfiles_result->fetchAssoc()) {
-    $allfiles_data[] = array(
-      'fid' => $record['fid'],
-      'filename' => $record['filename'],
-      'uri' => $record['uri'],
-    );
+  if ($settings['allfiles']) {
+    $allfiles_result = db_select('file_managed', 'f')
+      ->fields('f',array('fid', 'filename', 'uri'))
+      ->condition('fid', $settings['allfiles'], 'IN')
+      ->execute();
+    while($record = $allfiles_result->fetchAssoc()) {
+      $allfiles_data[] = array(
+        'fid' => $record['fid'],
+        'filename' => $record['filename'],
+        'uri' => $record['uri'],
+      );
+    }
   }
+
+  $form['ting_default_covers_remove'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Hide empty covers'),
+    '#description' => t('Remove empty covers or insert noimage.'),
+    '#tree' => TRUE,
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+
+  $form['ting_default_covers_remove']['ting_covers_plus_hide_covers'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Hide empty covers'),
+    '#default_value' => variable_get('ting_covers_plus_hide_covers', FALSE),
+  );
+
+  // Add buttons to update well types and sources
+  $form['update'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Update from datawell'),
+    '#description' => t('If needed, well types and well sources can be updated/refreshed here. This helps when evident that the settings below lacks settings for some types and/or sources.'),
+  );
+
+  $form['update']['types'] = array(
+    '#type' => 'submit',
+    '#value' => t('Update well types'),
+    '#submit' => array('_ting_covers_plus_update_types'),
+  );
+
+  $form['update']['sources'] = array(
+    '#type' => 'submit',
+    '#value' => t('Update well sources'),
+    '#submit' => array('_ting_covers_plus_update_sources'),
+  );
 
   $form['ting_default_covers'] = array(
     '#type' => 'fieldset',
     '#title' => t('Default covers'),
-    '#description' => t('Settings for the default cover and default cover per well type'),
+    '#description' => t('Settings for the default covers. A default cover will be set, first according to well SOURCE of the record, thereafter according to well MATERIAL TYPE for the record, and if none applies, the default cover (fallback) will be used.'),
     '#tree' => TRUE,
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
@@ -103,14 +140,28 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
     }
   }
 
-  $form['ting_default_covers']['_default'] = array(
-    '#type' => 'select',
-    '#title' => t('Default cover'),
-    '#default_value' => isset($settings['_default']) ? $settings['_default'] : '',
-    '#options' => (isset($settings['allfiles'])) ? $cover_options : array(),
-    '#description' => t('Default cover used for types that is not specifically set below.'),
-  );
+  // Settings for sources
+  if (count($sources)) {
+    $form['ting_default_covers']['sources'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Source specific default covers'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#description' => t("Here you may set default covers for sources. If a SOURCE default cover is not set, a default cover will then be chosen according to MATERIAL TYPE specific covers below."),
+    );
 
+    foreach ($sources as $source => $scount) {
+      $form['ting_default_covers']['sources'][$source] = array(
+        '#type' => 'select',
+        '#title' => $source,
+        '#default_value' => isset($settings['sources'][$source]) ? $settings['sources'][$source] : '',
+        '#options' => (isset($settings['allfiles'])) ? $cover_options : array(),
+        '#description' => t('Count: @count', array('@count' => $scount)),
+      );
+    }
+  }
+
+  // Setting for types
   if (count($types)) {
     $form['ting_default_covers']['types'] = array(
       '#type' => 'fieldset',
@@ -131,6 +182,15 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
     }
   }
 
+  // Setting for default fallback cover
+  $form['ting_default_covers']['_default'] = array(
+    '#type' => 'select',
+    '#title' => t('Default cover - fallback'),
+    '#default_value' => isset($settings['_default']) ? $settings['_default'] : '',
+    '#options' => (isset($settings['allfiles'])) ? $cover_options : array(),
+    '#description' => t('Default cover used for any of the above - if setting has not been set. This is the final fallback cover to ensure everything has covers.'),
+  );
+
   $form['#submit'] = array('ting_default_covers_submit');
 
   return system_settings_form($form);
@@ -140,6 +200,8 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
  * Ting covers plus admin form submission handler
  */
 function ting_default_covers_submit($form, &$form_state) {
+  $hide_covers = $form_state['values']['ting_default_covers_remove'];
+  variable_set('ting_covers_plus_hide_covers', $hide_covers['ting_covers_plus_hide_covers']);
 
   $settings = variable_get('ting_default_covers', array());
 
@@ -202,16 +264,19 @@ function ting_default_covers_submit($form, &$form_state) {
 
   variable_set('ting_default_covers', $settings);
 
-  // create a copy of types array with the keys transformed to a css-friendly string
   // Get additional info on allfiles part of the array, for labels and URLs
-  $fid_uri_map = array();
-  $map_result = db_select('file_managed', 'f')
-    ->fields('f',array('fid', 'uri'))
-    ->condition('fid', $settings['allfiles'], 'IN')
-    ->execute();
-  while($row = $map_result->fetchAssoc()) {
-    $fid_uri_map[$row['fid']] = $row['uri'];
+  if ($settings['allfiles']) {
+    $fid_uri_map = array();
+    $map_result = db_select('file_managed', 'f')
+      ->fields('f',array('fid', 'uri'))
+      ->condition('fid', $settings['allfiles'], 'IN')
+      ->execute();
+    while($row = $map_result->fetchAssoc()) {
+      $fid_uri_map[$row['fid']] = $row['uri'];
+    }
   }
+
+  // create a copy of types array with the keys transformed to a css-friendly string
   $mtype_uris = array('_default' => $fid_uri_map[$form_state['values']['ting_default_covers']['_default']] );
   if ($form_state['values']['ting_default_covers']['types']) {
     foreach($form_state['values']['ting_default_covers']['types'] as $key => $value) {
@@ -220,5 +285,29 @@ function ting_default_covers_submit($form, &$form_state) {
   }
   variable_set('ting_default_covers_mtype_uris', $mtype_uris);
 
+  // create a copy of sources array with the keys transformed to a css-friendly string
+  reset($fid_uri_map);
+  $source_uris = array('_default' => $fid_uri_map[$form_state['values']['ting_default_covers']['_default']] );
+  if ($form_state['values']['ting_default_covers']['sources']) {
+    foreach($form_state['values']['ting_default_covers']['sources'] as $key => $value) {
+      $source_uris[drupal_clean_css_identifier($key)] = (isset($fid_uri_map[$value]) ? $fid_uri_map[$value] : NULL);
+    }
+  }
+  variable_set('ting_default_covers_source_uris', $source_uris);
+
   $form_state['redirect'] = 'admin/config/ting/covers/defaults';
+}
+
+/**
+ * Submit handler. Updates the list of known well types.
+ */
+function _ting_covers_plus_update_types($form, &$form_state) {
+  _ting_fetch_well_types();
+}
+
+/**
+ * Submit handler. Updates the list of known well sources.
+ */
+function _ting_covers_plus_update_sources($form, &$form_state) {
+  _ting_fetch_well_sources();
 }

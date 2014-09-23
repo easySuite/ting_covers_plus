@@ -16,6 +16,12 @@ function ting_covers_plus_init() {
     $path = drupal_get_path('module', 'ting_covers_plus');
     drupal_add_css($path . '/css/admin.css');
   }
+  if (arg(0) == 'search' && arg(1) == 'ting') {
+    $hide_covers = array(
+      'ting_covers_plus' => variable_get('ting_default_covers_remove', FALSE),
+    );
+    drupal_add_js($hide_covers, 'setting');
+  }
 }
 
 /**
@@ -50,9 +56,9 @@ function ting_covers_plus_menu() {
  */
 function ting_covers_plus_preprocess_ting_object_cover(&$variables) {
   $object = $variables['object'] = $variables['elements']['#object'];
-  $ac_source = !empty($object->reply->record['ac:source'][''][0]) ? $object->reply->record['ac:source'][''][0] : FALSE; //array_shift($object->reply->record['ac:source']);
-  $dc_type = !empty($object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0]) ? $object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0] : (!empty($object->reply->record['dc:type'][''][0]) ? $object->reply->record['dc:type'][''][0] : FALSE);
-
+  $ac_source = !empty($object->reply->record['ac:source'][''][0]) ? $object->reply->record['ac:source'][''][0] : 'unknown'; //array_shift($object->reply->record['ac:source']);
+  $dc_type = !empty($object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0]) ? $object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0] : (!empty($object->reply->record['dc:type'][''][0]) ? $object->reply->record['dc:type'][''][0] : 'unknown');
+  
   // Set extra values required by the template.
   $variables['classes'][] = 'ting-cover-mtype-' . drupal_clean_css_identifier($dc_type);
   $variables['classes'][] = 'ting-cover-source-' . drupal_clean_css_identifier($ac_source);
@@ -88,7 +94,7 @@ function ting_covers_plus_field_formatter_view($entity_type, $entity, $field, $i
         'js' => array(drupal_get_path('module', 'ting_covers_plus') . '/js/ting-covers-plus.js'),
       ),
     );
-  }
+  } 
 
   return $element;
 }
@@ -105,8 +111,6 @@ function ting_covers_plus_field_formatter_view($entity_type, $entity, $field, $i
  * @param array $image_styles;
  */
 function ting_covers_plus_get_image_urls(&$missing_images_local_ids, &$covers, $image_styles) {
-  $sources = module_invoke_all('ting_covers_plus_sources');
-
   // Calls to external image sources for specific sources
   foreach ($missing_images_local_ids as $local_id_key => $local_id) {
 
@@ -134,17 +138,6 @@ function ting_covers_plus_get_image_urls(&$missing_images_local_ids, &$covers, $
       unset($missing_images_local_ids[$local_id_key]);
     }
 
-    // DLB Vejle sources
-    if ($local_id->sourceName == '630-01') {
-      $covers[] = array(
-        'local_id' => $local_id->localIdentifier,
-        'image_style' => $image_styles[$local_id->localIdentifier],
-        'url' => ting_covers_plus_cover_url_dlb_vejle($local_id, $image_styles[$local_id->localIdentifier]),
-      );
-
-      // Remove from missing images array so ADDI service won't call it later
-      unset($missing_images_local_ids[$local_id_key]);
-    }
   }
 
   // Reset array index before traversing it again
@@ -153,43 +146,14 @@ function ting_covers_plus_get_image_urls(&$missing_images_local_ids, &$covers, $
 
 
 /**
- * Declares information about extra cover sources for ting objects and collections.
- *
- * Any module can declare additional cover providers by implementing this hook.
- *
- * @return
- * An associative array of cover source information. The keys of the array
- * are the names of the action functions, and each corresponding value
- * is an associative array with the following key-value pairs:
- * - 'type': The type of object this action acts upon. Core actions have types
- * 'node', 'user', 'comment', and 'system'.
- * - 'label': The human-readable name of the action, which should be passed
- * through the t() function for translation.
- */
-function hook_ting_covers_plus_sources() {
-  return array(
-    'histatlas' => array(
-      'sourcelabel' => 'Historisk-Atlas',
-      'function' => 'ting_covers_plus_cover_url_histatlas',
-    ),
-    'dkbilleder' => array(
-      'sourcelabel' => 'Danske-Billeder',
-      'function' => 'ting_covers_plus_cover_url_dkbilleder',
-    ),
-    'dlb_vejle' => array(
-      'sourcelabel' => 'Vejle-Stadsarkiv',
-      'function' => 'ting_covers_plus_cover_url_dlb_vejle',
-    ),
-  );
-}
-
-/**
  * Function to get cover URL from provider Historisk Atlas
  *
  * @param object $local_id: is a 2-part identifier containing $local_id->libraryCode and $local_id->localIdentifier
  * @return string: url to image from Historisk Atlas
  */
 function ting_covers_plus_cover_url_histatlas($local_id, $image_style) {
+  $histatlas_url = '';
+
   // Call the well with agency (ex. 763000) and the 2-part identifier (owner_id:local_id, eks. 150043:3802)
   require_once drupal_get_path('module', 'ting') . '/ting.client.inc';
 
@@ -227,10 +191,6 @@ function ting_covers_plus_cover_url_histatlas($local_id, $image_style) {
       $histatlas_url = image_style_url($image_style, $file);
     }
   }
-  else {
-    //TODO: get default from settings instead
-    $histatlas_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/histatlas.jpg';
-  }
 
   return $histatlas_url;
 }
@@ -243,6 +203,8 @@ function ting_covers_plus_cover_url_histatlas($local_id, $image_style) {
  * @return string: url to image from Danske Billeder
  */
 function ting_covers_plus_cover_url_dkbilleder($local_id, $image_style) {
+  $dkbilleder_url = '';
+
   // Call the well with agency (ex. 763000) and the 2-part identifier (owner_id:local_id, eks. 150043:3802)
   require_once drupal_get_path('module', 'ting') . '/ting.client.inc';
 
@@ -286,68 +248,6 @@ function ting_covers_plus_cover_url_dkbilleder($local_id, $image_style) {
       $dkbilleder_url = image_style_url($image_style, $file);
     }
   }
-  else {
-    //TODO: get default from settings instead
-    $dkbilleder_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/dkbilleder.jpg';
-  }
 
   return $dkbilleder_url;
 }
-
-
-/**
- * Function to get cover URL from provider DLB Vejle (Dansk Lokalbibliografi Vejle)
- *
- * @param object $local_id: is a 2-part identifier containing $local_id->libraryCode and $local_id->localIdentifier
- * @return string: url to image from DLB Vejle
- */
-function ting_covers_plus_cover_url_dlb_vejle($local_id, $image_style) {
-  /*
-  // Call the well with agency (ex. 763000) and the 2-part identifier (owner_id:local_id, eks. 150043:3802)
-  require_once drupal_get_path('module', 'ting') . '/ting.client.inc';
-
-  $request = ting_get_request_factory()->getObjectRequest();
-
-  if ($agency = variable_get('ting_agency', FALSE)) {
-    $request->setAgency($agency);
-  }
-
-  $profile = variable_get('ting_search_profile', '');
-  if (!empty($profile) && method_exists($request, 'setProfile')) {
-    $request->setProfile($profile);
-  }
-
-  // The identifier is libraryCode (aka owner_id) + local ID
-  $request->setObjectId($local_id->libraryCode . ':' . $local_id->localIdentifier);
-  $request->setFormat('opensearchobject');
-  $request->setObjectFormat('opensearchobject');
-  $request->setAllRelations('true');
-  $request->setRelationData('full');
-  // Set to PHP output instead of JSON to retrieve the relations - in JSON they are not present
-  $request->setOutputType('php');
-
-  $dlb_vejle_result = ting_execute_cache($request);
-
-  // Get URL to image from DLB Vejle
-  $dlb_vejle_url = unserialize($dlb_vejle_result)->searchResponse->_value->result->_value->searchResult[0]->_value->collection->_value->object[0]->_value->relations->_value->relation[1]->_value->relationObject->_value->object->_value->object->_value->image->_value;
-  */
-
-  if (!empty($dlb_vejle_url)) {
-    $dlb_vejle_url = $dlb_vejle_url;
-
-    // Try to download the image locally.
-    if ($file = _ting_covers_pages_fetch_image(ting_covers_object_path($local_id->localIdentifier), $dlb_vejle_url)) {
-      // Generate a path corresponding to the downloaded image, styled.
-      $dlb_vejle_url = image_style_url($image_style, $file);
-    }
-  }
-  else {
-    //TODO: get default from settings instead
-    $dlb_vejle_url = $GLOBALS['base_url'] . '/sites/default/files/ting_covers_defaults/dlb_vejle.png';
-  }
-
-  // TODO: Try to download the image locally.
-
-  return $dlb_vejle_url;
-}
-
