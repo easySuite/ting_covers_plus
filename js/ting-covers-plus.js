@@ -25,7 +25,7 @@
     $.each(covers, function(index, cover_info) {
       var $cover_block = $('.ting-cover-processing' + '.ting-cover-object-id-' + cover_info.local_id + '.ting-cover-style-' + cover_info.image_style);
       $cover_block.html('<img src="' + cover_info.url + '"/>');
-      if (cover_info.class.length > 0) {
+      if (cover_info.class !== undefined && cover_info.class.length > 0) {
         $cover_block.addClass(cover_info.class);
       }
     });
