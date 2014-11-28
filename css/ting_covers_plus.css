@@ -1,0 +1,18 @@
+/* Welcome to Compass. Use this file to define print styles.
+ * Import this file using the following HTML or equivalent:
+ * <link href="/stylesheets/print.css" media="print" rel="stylesheet" type="text/css" /> */
+/* line 6, ../sass/ting_covers_plus.scss */
+.no-cover .ting-object-right,
+.pane-ting-object .no-cover .group-ting-object-right-column,
+.pane-search-result .search-results .list .no-cover + .search-result--availability {
+  float: right;
+  width: 100%;
+  margin-right: 0%;
+  padding-left: 10px;
+  padding-right: 10px;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
+  word-wrap: break-word;
+}

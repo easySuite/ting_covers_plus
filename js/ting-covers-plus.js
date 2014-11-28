@@ -21,6 +21,7 @@
     };
   };
 
+
   var ting_cover_insert = function(covers) {
     $.each(covers, function(index, cover_info) {
       var $cover_block = $('.ting-cover-processing' + '.ting-cover-object-id-' + cover_info.local_id + '.ting-cover-style-' + cover_info.image_style);
@@ -34,9 +35,13 @@
     if (Drupal.settings.ting_covers_plus.ting_covers_plus_hide_covers === 1) {
       $('.ting-cover').each(function(index, element) {
         if ($(element).find('img').length === 0 || $(element).hasClass('ting-covers-plus-default')) {
-          this.remove();
+          var el = this;
+
+          // Add class for styling purposes
+          $(el).closest('.ting-object').addClass('no-cover');
+          el.remove();
         }
-      })
+      });
     }
   };
 

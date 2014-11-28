@@ -61,7 +61,7 @@ function ting_covers_plus_preprocess_ting_object_cover(&$variables) {
   $object = $variables['object'] = $variables['elements']['#object'];
   $ac_source = !empty($object->reply->record['ac:source'][''][0]) ? $object->reply->record['ac:source'][''][0] : 'unknown'; //array_shift($object->reply->record['ac:source']);
   $dc_type = !empty($object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0]) ? $object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0] : (!empty($object->reply->record['dc:type'][''][0]) ? $object->reply->record['dc:type'][''][0] : 'unknown');
-  
+
   // Set extra values required by the template.
   $variables['classes'][] = 'ting-cover-mtype-' . drupal_clean_css_identifier($dc_type);
   $variables['classes'][] = 'ting-cover-source-' . drupal_clean_css_identifier($ac_source);
@@ -95,9 +95,10 @@ function ting_covers_plus_field_formatter_view($entity_type, $entity, $field, $i
       '#image_style' => $display['settings']['image_style'],
       '#attached' => array(
         'js' => array(drupal_get_path('module', 'ting_covers_plus') . '/js/ting-covers-plus.js'),
+        'css' => array(drupal_get_path('module', 'ting_covers_plus') . '/css/ting_covers_plus.css'),
       ),
     );
-  } 
+  }
 
   return $element;
 }
