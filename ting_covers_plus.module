@@ -61,10 +61,11 @@ function ting_covers_plus_preprocess_ting_object_cover(&$variables) {
   $object = $variables['object'] = $variables['elements']['#object'];
   $ac_source = !empty($object->reply->record['ac:source'][''][0]) ? $object->reply->record['ac:source'][''][0] : 'unknown'; //array_shift($object->reply->record['ac:source']);
   $dc_type = !empty($object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0]) ? $object->reply->record['dc:type']['dkdcplus:BibDK-Type'][0] : (!empty($object->reply->record['dc:type'][''][0]) ? $object->reply->record['dc:type'][''][0] : 'unknown');
-  
+
   // Set extra values required by the template.
-  $variables['classes'][] = 'ting-cover-mtype-' . drupal_clean_css_identifier($dc_type);
-  $variables['classes'][] = 'ting-cover-source-' . drupal_clean_css_identifier($ac_source);
+  // We change the strings to lowercase to make them match the values in the variable arrays ting_well_types and ting_well_sources.
+  $variables['classes'][] = 'ting-cover-mtype-' . mb_strtolower(drupal_clean_css_identifier($dc_type), 'utf-8');
+  $variables['classes'][] = 'ting-cover-source-' . mb_strtolower(drupal_clean_css_identifier($ac_source), 'utf-8');
 }
 
 /**
@@ -95,9 +96,10 @@ function ting_covers_plus_field_formatter_view($entity_type, $entity, $field, $i
       '#image_style' => $display['settings']['image_style'],
       '#attached' => array(
         'js' => array(drupal_get_path('module', 'ting_covers_plus') . '/js/ting-covers-plus.js'),
+        'css' => array(drupal_get_path('module', 'ting_covers_plus') . '/css/ting_covers_plus.css'),
       ),
     );
-  } 
+  }
 
   return $element;
 }
@@ -149,6 +151,43 @@ function ting_covers_plus_get_image_urls(&$missing_images_local_ids, &$covers, $
 
 
 /**
+* Helper function returning current (alternative) search profile id
+*
+* This function supports ding-sites that employ multiple search
+* modules/interfaces (see f.ex. https://github.com/vejlebib/ting_extrasearch).
+* It looks for "/search/ting" in the HTTP_REFERER string as it
+* it assumes that any other ting search modules will also be implemented
+* starting with "ting" (such as the URL-path "/search/tingextra/").
+* It then extracts the needed string from HTTP_REFERER, and (again) makes
+* an assumption that a variable named according to the pattern
+* "ting_{EXTRACTEDSTRING}search_profile" will exist.
+*
+* @return string
+* ID of a well search profile, or NULL if the current search
+* profile is the default.
+*/
+function _ting_covers_plus_alt_search_profile_ID() {
+  $profile_val = NULL;
+
+  $referer = $GLOBALS[_SERVER][HTTP_REFERER];
+
+  if (strpos($referer, '/search/ting') !== false) {
+    $referer_parts = explode('/', $referer);
+    array_pop($referer_parts); // Removes last part of the array
+
+    if(end($referer_parts)) {
+      $ting_search_part = str_replace('ting', '', end($referer_parts));
+
+      if ($ting_search_part != '') {
+        $profile_val = "ting_" . $ting_search_part . "search_profile";
+      }
+    }
+  }
+  return $profile_val;
+}
+
+
+/**
  * Function to get cover URL from provider Historisk Atlas
  *
  * @param object $local_id: is a 2-part identifier containing $local_id->libraryCode and $local_id->localIdentifier
@@ -166,7 +205,13 @@ function ting_covers_plus_cover_url_histatlas($local_id, $image_style) {
     $request->setAgency($agency);
   }
 
-  $profile = variable_get('ting_search_profile', '');
+  $alt_search_profile_ID = _ting_covers_plus_alt_search_profile_ID();
+  if($alt_search_profile_ID) {
+    $profile = variable_get($alt_search_profile_ID, '');
+  }
+  else {
+    $profile = variable_get('ting_search_profile', '');
+  }
   if (!empty($profile) && method_exists($request, 'setProfile')) {
     $request->setProfile($profile);
   }
@@ -217,7 +262,13 @@ function ting_covers_plus_cover_url_dkbilleder($local_id, $image_style) {
     $request->setAgency($agency);
   }
 
-  $profile = variable_get('ting_search_profile', '');
+  $alt_search_profile_ID = _ting_covers_plus_alt_search_profile_ID();
+  if($alt_search_profile_ID) {
+    $profile = variable_get($alt_search_profile_ID, '');
+  }
+  else {
+    $profile = variable_get('ting_search_profile', '');
+  }
   if (!empty($profile) && method_exists($request, 'setProfile')) {
     $request->setProfile($profile);
   }

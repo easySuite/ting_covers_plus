@@ -124,12 +124,12 @@ function _ting_covers_plus_get_default_image($mtype, $source) {
   $source_uris = variable_get('ting_default_covers_source_uris');
 
   // Check first if we have default cover defined for SOURCE NAME
-  if (isset($source_uris[strtolower($source)])) {
-    $source_url = $source_uris[strtolower($source)];
+  if (isset($source_uris[$source])) {
+    $source_url = $source_uris[$source];
   }
   // Then check if we have default cover defined for MATERIAL TYPE
-  elseif (isset($mtype_uris[strtolower($mtype)])) {
-    $source_url = $mtype_uris[strtolower($mtype)];
+  elseif (isset($mtype_uris[$mtype])) {
+    $source_url = $mtype_uris[$mtype];
   }
   // Last, use the default fallback cover if it has been defined
   elseif (isset($mtype_uris['_default'])) {
