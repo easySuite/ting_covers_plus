@@ -1,9 +1,7 @@
 name = Ting covers plus
-description = Deafults covers and cover provider plugins for Ting objects and collections
+description = Default covers and cover provider plugins for Ting objects and collections
 package = easyDDB
 core = 7.x
-version = "7.x-1.0.1"
-files[] = ting_covers_plus.module
+version = 7.x-2.0.0+easy
 dependencies[] = ting
 dependencies[] = ting_covers
-
