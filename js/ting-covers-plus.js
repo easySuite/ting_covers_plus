@@ -39,7 +39,7 @@
 
           // Add class for styling purposes
           $(el).closest('.ting-object').addClass('no-cover');
-          el.remove();
+          $(el).remove();
         }
       });
     }
