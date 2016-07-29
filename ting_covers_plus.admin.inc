@@ -191,6 +191,14 @@ function ting_covers_plus_admin_default_covers_form($form, &$form_state) {
     '#description' => t('Default cover used for any of the above - if setting has not been set. This is the final fallback cover to ensure everything has covers.'),
   );
 
+  $path = drupal_get_path('module', 'ting_covers_plus');
+  $form['#attached'] = array(
+    'css' => array(
+      'type' => 'file',
+      'data' => $path . '/css/admin.css',
+    ),
+  );
+
   $form['#submit'] = array('ting_default_covers_submit');
 
   return system_settings_form($form);
