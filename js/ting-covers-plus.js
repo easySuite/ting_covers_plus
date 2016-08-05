@@ -6,18 +6,12 @@
     var classname = $(e).attr('class');
     var local_id = classname.match(/ting-cover-object-id-(\S+)/);
     var image_style = classname.match(/ting-cover-style-(\S+)/);
-    var owner_id = classname.match(/ting-cover-owner-id-(\S+)/);
-    var mtype = classname.match(/ting-cover-mtype-(\S+)/);
-    var source = classname.match(/ting-cover-source-(\S+)/);
     if (!local_id) {
       return false;
     }
     return {
       local_id : local_id[1],
-      owner_id : owner_id[1],
       image_style : image_style[1],
-      mtype : mtype[1],
-      source : source[1]
     };
   };
 
