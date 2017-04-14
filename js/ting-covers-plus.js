@@ -3,22 +3,22 @@
 
   // Helper function to get information about a given cover place holder.
   var ting_covers_extract_data = function(e) {
-    var classname = $(e).attr('class');
-    var local_id = classname.match(/ting-cover-object-id-(\S+)/);
-    var image_style = classname.match(/ting-cover-style-(\S+)/);
+    var local_id = $(e).data('ting-cover-object-id');
+    var image_style = $(e).data('ting-cover-style');
+
     if (!local_id) {
       return false;
     }
     return {
-      local_id : local_id[1],
-      image_style : image_style[1],
+      local_id : local_id,
+      image_style : image_style
     };
   };
 
 
   var ting_cover_insert = function(covers) {
     $.each(covers, function(index, cover_info) {
-      var $cover_block = $('.ting-cover-processing' + '.ting-cover-object-id-' + cover_info.local_id + '.ting-cover-style-' + cover_info.image_style);
+      var $cover_block = $('.ting-cover[data-ting-cover-object-id="' + cover_info.local_id + '"]');
       $cover_block.html('<img src="' + cover_info.url + '"/>');
       if (typeof cover_info.class !== 'undefined' && cover_info.class.length > 0) {
         $cover_block.addClass(cover_info.class);
@@ -43,12 +43,10 @@
     attach: function(context) {
       // Assemble information regarding covers.
       var cover_data = [];
-
       // Extract cover information from the dom.
       $('.ting-cover:not(.ting-cover-processing, .ting-cover-processed)', context).each(function(index, element) {
         cover_data.push(ting_covers_extract_data(element));
       }).addClass('ting-cover-processing');
-
       // Get all images without covers, even if cache exist.
       if (cover_data.length === 0) {
         $('.ting-cover').each(function(index, element) {
