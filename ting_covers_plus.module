@@ -92,7 +92,15 @@ function ting_covers_plus_field_formatter_view($entity_type, $entity, $field, $i
       '#object' => $entity,
       '#image_style' => $display['settings']['image_style'],
       '#attached' => array(
-        'js' => array(drupal_get_path('module', 'ting_covers_plus') . '/js/ting-covers-plus.js'),
+        'js' => array(
+          array(
+            'data' => drupal_get_path('module', 'ting_covers_plus') . '/js/ting-covers-plus.js',
+            'scope' => 'footer',
+          ),
+          array(
+            'data' => drupal_get_path('module', 'ting_covers') . '/js/ting-covers.js',
+          ),
+        ),
         'css' => array(drupal_get_path('module', 'ting_covers_plus') . '/css/ting_covers_plus.css'),
       ),
     );

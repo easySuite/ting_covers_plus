@@ -39,22 +39,14 @@
     }
   };
 
-  Drupal.behaviors.tingCovers = {
+  Drupal.behaviors.tingCoversPlus = {
     attach: function(context) {
       // Assemble information regarding covers.
       var cover_data = [];
       // Extract cover information from the dom.
-      $('.ting-cover:not(.ting-cover-processing, .ting-cover-processed)', context).each(function(index, element) {
+      $('.ting-cover.ting-cover-processing:not(.ting-cover-processed)', context).each(function(index, element) {
         cover_data.push(ting_covers_extract_data(element));
-      }).addClass('ting-cover-processing');
-      // Get all images without covers, even if cache exist.
-      if (cover_data.length === 0) {
-        $('.ting-cover').each(function(index, element) {
-          if ($(element).find('img').length === 0) {
-            cover_data.push(ting_covers_extract_data(element));
-          }
-        }).addClass('ting-cover-processing');
-      }
+      });
 
       if (cover_data.length > 0) {
         //Retrieve covers
