@@ -2,6 +2,6 @@ name = Ting covers plus
 description = Default covers and cover provider plugins for Ting objects and collections
 package = easyOPAC
 core = 7.x
-version = 7.x-2.0.0+easy
+version = 7.x-3.0.2
 dependencies[] = ting
 dependencies[] = ting_covers
