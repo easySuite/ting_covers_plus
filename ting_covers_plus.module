@@ -15,10 +15,7 @@ function ting_covers_plus_init() {
   $search_page = arg(0) == 'search' && arg(1) == 'ting';
   $collection_page = arg(0) == 'ting' && arg(1) == 'collection';
   $object_page = arg(0) == 'ting' && arg(1) == 'object';
-  if (arg(0) == 'admin') {
-    $path = drupal_get_path('module', 'ting_covers_plus');
-    drupal_add_css($path . '/css/admin.css');
-  }
+
   if ($search_page || $collection_page || $object_page) {
     $hide_covers = array(
       'ting_covers_plus' => variable_get('ting_default_covers_remove', FALSE),
@@ -95,7 +92,15 @@ function ting_covers_plus_field_formatter_view($entity_type, $entity, $field, $i
       '#object' => $entity,
       '#image_style' => $display['settings']['image_style'],
       '#attached' => array(
-        'js' => array(drupal_get_path('module', 'ting_covers_plus') . '/js/ting-covers-plus.js'),
+        'js' => array(
+          array(
+            'data' => drupal_get_path('module', 'ting_covers_plus') . '/js/ting-covers-plus.js',
+            'scope' => 'footer',
+          ),
+          array(
+            'data' => drupal_get_path('module', 'ting_covers') . '/js/ting-covers.js',
+          ),
+        ),
         'css' => array(drupal_get_path('module', 'ting_covers_plus') . '/css/ting_covers_plus.css'),
       ),
     );
