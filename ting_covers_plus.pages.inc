@@ -24,21 +24,29 @@ function ting_covers_plus_objects() {
   $return = array();
   foreach ($ids as $id) {
     $source_url = NULL;
+    $default_image = _ting_covers_plus_get_default_image($id, '_default');
+    $default_image_url = image_style_url($styles[$id], $default_image);
     if (!empty($covers[$id])) {
       $source_url = $covers[$id];
     }
     else {
-      $source_url = _ting_covers_plus_get_default_image($id, '_default');
+      $source_url = $default_image;
     }
+
+    $image_url = '';
+    if (file_exists($source_url)) {
+      $image_url = image_style_url($styles[$id], $source_url);
+    }
+
     // Generate a path corresponding to the default image, styled.
     $return[] = array(
       'local_id' => $id,
       'image_style' => $styles[$id],
-      'url' => image_style_url($styles[$id], $source_url),
-      'class' => 'ting-covers-plus-default',
+      'url' => $image_url,
+      'class' => ($default_image_url == image_style_url($styles[$id], $source_url)) ? 'ting-covers-plus-default' : '',
     );
   }
-    // Return all image information.
+  // Return all image information.
   drupal_json_output($return);
 }
 

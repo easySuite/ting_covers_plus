@@ -15,22 +15,26 @@
     };
   };
 
-
   var ting_cover_insert = function(covers) {
     $.each(covers, function(index, cover_info) {
       var $cover_block = $('.ting-cover[data-ting-cover-object-id="' + cover_info.local_id + '"]');
-      $cover_block.html('<img src="' + cover_info.url + '"/>');
-      if (typeof cover_info.class !== 'undefined' && cover_info.class.length > 0) {
-        $cover_block.addClass(cover_info.class);
+
+      if (cover_info.url) {
+        $cover_block.html('<img src="' + cover_info.url + '"/>');
+
+        if (typeof cover_info.class !== 'undefined' && cover_info.class.length > 0) {
+          $cover_block.addClass(cover_info.class);
+        }
       }
     });
 
     // Remove no image picture from covers.
     if (Drupal.settings.ting_covers_plus.ting_covers_plus_hide_covers === 1) {
       $('.ting-cover').each(function(index, element) {
-        if ($(element).find('img').length === 0 || $(element).hasClass('ting-covers-plus-default')) {
+        var $img = $(element).find('img');
+        var cur_el = $(element);
+        if ($img.length === 0 || cur_el.hasClass('ting-covers-plus-default')) {
           var el = this;
-
           // Add class for styling purposes
           $(el).closest('.ting-object').addClass('no-cover');
           $(el).remove();
