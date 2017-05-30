@@ -29,7 +29,7 @@
     });
 
     // Remove no image picture from covers.
-    if (Drupal.settings.ting_covers_plus.ting_covers_plus_hide_covers === 1) {
+    if (Drupal.settings.ting_covers_plus != undefined && Drupal.settings.ting_covers_plus.ting_covers_plus_hide_covers === 1) {
       $('.ting-cover').each(function(index, element) {
         var $img = $(element).find('img');
         var cur_el = $(element);
