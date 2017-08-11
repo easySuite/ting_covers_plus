@@ -29,8 +29,12 @@
     });
 
     // Remove no image picture from covers.
-    if (Drupal.settings.ting_covers_plus != undefined && Drupal.settings.ting_covers_plus.ting_covers_plus_hide_covers === 1) {
+    if (Drupal.settings.ting_covers_plus !== undefined && Drupal.settings.ting_covers_plus.ting_covers_plus_hide_covers === 1) {
       $('.ting-cover').each(function(index, element) {
+        // Keep element for medium image style which is used for carousel widgets.
+        if ($(element).data('ting-cover-style') === 'medium') {
+          return;
+        }
         var $img = $(element).find('img');
         var cur_el = $(element);
         if ($img.length === 0 || cur_el.hasClass('ting-covers-plus-default')) {
